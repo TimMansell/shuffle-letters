@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>Shuffle Letters Test</title>
+  </head>
+
+  <body>
+    <h1>Shuffle Letters Test</h1>
+    <p class="first"></p>
+    <p class="second"></p>
+    <p class="third" hidden>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Neque dolore, corrupti impedit iure dolor obcaecati repellendus aliquam ut iusto quia omnis, possimus architecto magni at a aperiam veritatis fugiat tempore.</p>
+    <p class="third" hidden>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quos accusantium voluptas eum quae perspiciatis, iste corporis rerum quibusdam porro nemo culpa sed animi quasi laboriosam, repudiandae asperiores, eaque tempora eligendi?</p>
+
+    <script src="../node_modules/es6-promise/dist/es6-promise.min.js"></script>
+    <script src="../dist/shuffle-letters.js"></script>
+    <script>
+      shuffleLetters(document.querySelector('h1'))
+        .then(function (el) {
+          console.log(el);
+          return shuffleLetters(document.querySelectorAll('.first'), {
+            text: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Minima suscipit debitis necessitatibus nihil repellat a porro quibusdam earum excepturi vero, unde, autem, sint dolorem. Nam, pariatur doloribus animi ipsam esse.',
+            step: 1,
+            fps: 15
+          });
+        })
+        .then(function (el) {
+          console.log(el);
+          return shuffleLetters(document.querySelectorAll('.second'), {
+            text: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ea, magnam, inventore. Impedit fugiat est, ex nobis voluptatum laborum unde officia aut quae placeat omnis repellendus nam. Nam, magni tenetur doloremque. Lorem ipsum dolor sit amet, consectetur adipisicing elit. Ea, magnam, inventore.',
+            step: 30
+          });
+        })
+        .then(function (el) {
+          console.log(el);
+          var third = document.querySelectorAll('.third');
+          for (var i = 0; i < third.length; i++) {
+            third[i].hidden = false;
+          }
+          return shuffleLetters(third);
+        })
+        .then(function (els) {
+          console.log(els);
+        });
+    </script>
+  </body>
+</html>
