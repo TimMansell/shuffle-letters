@@ -1343,13 +1343,13 @@ for(var collections = ['NodeList', 'DOMTokenList', 'MediaList', 'StyleSheetList'
 },{"./_global":24,"./_hide":26,"./_iterators":38,"./_wks":69,"./es6.array.iterator":72}],78:[function(require,module,exports){
 'use strict';
 
-var _promise = require('babel-runtime/core-js/promise');
-
-var _promise2 = _interopRequireDefault(_promise);
-
 var _assign = require('babel-runtime/core-js/object/assign');
 
 var _assign2 = _interopRequireDefault(_assign);
+
+var _promise = require('babel-runtime/core-js/promise');
+
+var _promise2 = _interopRequireDefault(_promise);
 
 var _from = require('babel-runtime/core-js/array/from');
 
@@ -1361,11 +1361,6 @@ function range(start, end) {
   return (0, _from2.default)({ length: end - start + 1 }, function (_, i) {
     return i + start;
   });
-}
-
-function arrayMap(el, fn) {
-  var elArray = Array.isArray(el) || el instanceof NodeList || el instanceof HTMLCollection ? (0, _from2.default)(el) : [el];
-  return elArray.map(fn);
 }
 
 function getRandomChar(type) {
@@ -1385,64 +1380,68 @@ function getRandomChar(type) {
   return poolArray[Math.floor(Math.random() * poolArray.length)];
 }
 
-function shuffleLetters(els, options) {
+function shuffleLetters(el, options) {
+  return new _promise2.default(function (resolve) {
+    if (el.dataset.shuffleLettersAnimated === 'true') {
+      return;
+    }
+    el.dataset.shuffleLettersAnimated = 'true';
+
+    var strArray = (0, _from2.default)(options.text || el.textContent);
+    var types = [];
+    var letters = [];
+
+    strArray.forEach(function (char, i) {
+      if (char === ' ') {
+        types[i] = 'space';
+        return;
+      } else if (/[a-z]/.test(char)) {
+        types[i] = 'lowerLetter';
+      } else if (/[A-Z]/.test(char)) {
+        types[i] = 'upperLetter';
+      } else {
+        types[i] = 'symbol';
+      }
+      letters.push(i);
+    });
+    el.textContent = '';
+
+    (function shuffle(start) {
+      var len = letters.length;
+      var shuffledArray = [].concat(strArray);
+
+      if (start > len) {
+        el.dataset.shuffleLettersAnimated = 'false';
+        return resolve();
+      }
+
+      range(Math.max(start, 0), len).forEach(function (i) {
+        shuffledArray[letters[i]] = i < start + options.step ? getRandomChar(types[letters[i]]) : '';
+      });
+      el.textContent = shuffledArray.join('');
+
+      setTimeout(function () {
+        return shuffle(start + 1);
+      }, 1000 / options.fps);
+    })(-options.step);
+  });
+}
+
+function isArrayLike(el) {
+  return Array.isArray(el) || el instanceof NodeList || el instanceof HTMLCollection;
+}
+
+module.exports = function (el, options) {
   options = (0, _assign2.default)({}, {
     step: 8,
     fps: 25,
     text: ''
   }, options);
 
-  return _promise2.default.all(arrayMap(els, function (el) {
-    return new _promise2.default(function (resolve) {
-      if (el.dataset.shuffleLettersAnimated === 'true') {
-        return;
-      }
-      el.dataset.shuffleLettersAnimated = 'true';
-
-      var strArray = (0, _from2.default)(options.text || el.textContent);
-      var types = [];
-      var letters = [];
-
-      strArray.forEach(function (char, i) {
-        if (char === ' ') {
-          types[i] = 'space';
-          return;
-        } else if (/[a-z]/.test(char)) {
-          types[i] = 'lowerLetter';
-        } else if (/[A-Z]/.test(char)) {
-          types[i] = 'upperLetter';
-        } else {
-          types[i] = 'symbol';
-        }
-        letters.push(i);
-      });
-      el.textContent = '';
-
-      (function shuffle(start) {
-        var len = letters.length;
-        var shuffledArray = [].concat(strArray);
-
-        if (start > len) {
-          el.dataset.shuffleLettersAnimated = 'false';
-          return resolve(el);
-        }
-
-        range(Math.max(start, 0), len).forEach(function (i) {
-          shuffledArray[letters[i]] = i < start + options.step ? getRandomChar(types[letters[i]]) : '';
-        });
-        el.textContent = shuffledArray.join('');
-
-        setTimeout(function () {
-          return shuffle(start + 1);
-        }, 1000 / options.fps);
-      })(-options.step);
-    });
-  })).then(function () {
-    return els;
-  });
-}
-
-module.exports = shuffleLetters;
+  return isArrayLike(el) ? _promise2.default.all((0, _from2.default)(el).map(function (e) {
+    return shuffleLetters(e, options);
+  })) : shuffleLetters(el, options);
+};
 
 },{"babel-runtime/core-js/array/from":1,"babel-runtime/core-js/object/assign":2,"babel-runtime/core-js/promise":3}]},{},[78])(78)
 });

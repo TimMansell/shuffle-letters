@@ -4,15 +4,6 @@ function range(start, end) {
   return Array.from({length: end - start + 1}, (_, i) => i + start);
 }
 
-function arrayMap(el, fn) {
-  const elArray = (
-    Array.isArray(el) || el instanceof NodeList || el instanceof HTMLCollection
-  )
-    ? Array.from(el)
-    : [el];
-  return elArray.map(fn);
-}
-
 function getRandomChar(type) {
   let pool = '';
   switch (type) {
@@ -30,14 +21,8 @@ function getRandomChar(type) {
   return poolArray[Math.floor(Math.random() * poolArray.length)];
 }
 
-function shuffleLetters(els, options) {
-  options = Object.assign({}, {
-    step: 8,
-    fps: 25,
-    text: ''
-  }, options);
-
-  return Promise.all(arrayMap(els, (el) => new Promise((resolve) => {
+function shuffleLetters(el, options) {
+  return new Promise((resolve) => {
     if (el.dataset.shuffleLettersAnimated === 'true') {
       return;
     }
@@ -68,7 +53,7 @@ function shuffleLetters(els, options) {
 
       if (start > len) {
         el.dataset.shuffleLettersAnimated = 'false';
-        return resolve(el);
+        return resolve();
       }
 
       range(Math.max(start, 0), len).forEach((i) => {
@@ -80,8 +65,21 @@ function shuffleLetters(els, options) {
 
       setTimeout(() => shuffle(start + 1), 1000 / options.fps);
     })(-options.step);
-  })))
-    .then(() => els);
+  });
 }
 
-module.exports = shuffleLetters;
+function isArrayLike(el) {
+  return Array.isArray(el) || el instanceof NodeList || el instanceof HTMLCollection;
+}
+
+module.exports = function (el, options) {
+  options = Object.assign({}, {
+    step: 8,
+    fps: 25,
+    text: ''
+  }, options);
+
+  return isArrayLike(el)
+    ? Promise.all(Array.from(el).map((e) => shuffleLetters(e, options)))
+    : shuffleLetters(el, options);
+};
