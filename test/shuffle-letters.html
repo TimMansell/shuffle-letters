@@ -18,11 +18,23 @@
     <script>
       shuffleLetters(document.querySelector('h1'))
         .then(function () {
-          return shuffleLetters(document.querySelector('.first'), {
+          var el = document.querySelector('.first');
+          var animate = shuffleLetters(el, {
             text: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Minima suscipit debitis necessitatibus nihil repellat a porro quibusdam earum excepturi vero, unde, autem, sint dolorem. Nam, pariatur doloribus animi ipsam esse.',
             step: 1,
             fps: 15
           });
+
+          setTimeout(function () {
+            console.log('multiple firing');
+            shuffleLetters(el, {
+              text: 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Minima suscipit debitis necessitatibus nihil repellat a porro quibusdam earum excepturi vero, unde, autem, sint dolorem. Nam, pariatur doloribus animi ipsam esse.',
+              step: 1,
+              fps: 15
+            });
+          }, 1000);
+
+          return animate;
         })
         .then(function () {
           return shuffleLetters(document.querySelector('.second'), {

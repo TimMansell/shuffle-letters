@@ -1,5 +1,7 @@
 'use strict';
 
+const animationStates = new WeakMap();
+
 function range(start, end) {
   return Array.from({length: end - start + 1}, (_, i) => i + start);
 }
@@ -23,12 +25,13 @@ function getRandomChar(type) {
 
 function shuffleLetters(el, options) {
   return new Promise((resolve) => {
-    if (el.dataset.shuffleLettersAnimated === 'true') {
+    if (animationStates.get(el)) {
       return;
     }
-    el.dataset.shuffleLettersAnimated = 'true';
+    animationStates.set(el, true);
 
     const strArray = Array.from(options.text || el.textContent);
+    const msPerFrame = 1000 / options.fps;
     const types = [];
     const letters = [];
 
@@ -46,24 +49,23 @@ function shuffleLetters(el, options) {
       letters.push(i);
     });
     el.textContent = '';
+    const len = letters.length;
 
     (function shuffle(start) {
-      const len = letters.length;
       const shuffledArray = [].concat(strArray);
 
       if (start > len) {
-        el.dataset.shuffleLettersAnimated = 'false';
+        animationStates.set(el, false);
         return resolve();
       }
 
       range(Math.max(start, 0), len).forEach((i) => {
         shuffledArray[letters[i]] = i < (start + options.step)
-          ? getRandomChar(types[letters[i]])
-          : '';
+          ? getRandomChar(types[letters[i]]) : '';
       });
       el.textContent = shuffledArray.join('');
 
-      setTimeout(() => shuffle(start + 1), 1000 / options.fps);
+      setTimeout(() => shuffle(start + 1), msPerFrame);
     })(-options.step);
   });
 }
@@ -73,13 +75,11 @@ function isArrayLike(el) {
 }
 
 module.exports = function (el, options) {
+  el = isArrayLike(el) ? Array.from(el) : [el];
   options = Object.assign({}, {
     step: 8,
     fps: 25,
     text: ''
   }, options);
-
-  return isArrayLike(el)
-    ? Promise.all(Array.from(el).map((e) => shuffleLetters(e, options)))
-    : shuffleLetters(el, options);
+  return Promise.all(el.map((e) => shuffleLetters(e, options)));
 };
