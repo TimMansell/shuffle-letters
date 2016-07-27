@@ -1682,10 +1682,10 @@ function getRandomChar(type) {
 
 function shuffleLetters(el, options) {
   return new _promise2.default(function (resolve) {
-    if (animationStates.get(el)) {
+    if (animationStates.has(el)) {
       return;
     }
-    animationStates.set(el, true);
+    animationStates.set(el);
 
     var strArray = (0, _from2.default)(options.text || el.textContent);
     var msPerFrame = 1000 / options.fps;
@@ -1712,7 +1712,7 @@ function shuffleLetters(el, options) {
       var shuffledArray = [].concat(strArray);
 
       if (start > len) {
-        animationStates.set(el, false);
+        animationStates.delete(el);
         return resolve();
       }
 

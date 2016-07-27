@@ -25,10 +25,10 @@ function getRandomChar(type) {
 
 function shuffleLetters(el, options) {
   return new Promise((resolve) => {
-    if (animationStates.get(el)) {
+    if (animationStates.has(el)) {
       return;
     }
-    animationStates.set(el, true);
+    animationStates.set(el);
 
     const strArray = Array.from(options.text || el.textContent);
     const msPerFrame = 1000 / options.fps;
@@ -55,7 +55,7 @@ function shuffleLetters(el, options) {
       const shuffledArray = [].concat(strArray);
 
       if (start > len) {
-        animationStates.set(el, false);
+        animationStates.delete(el);
         return resolve();
       }
 
