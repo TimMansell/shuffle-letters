@@ -5,8 +5,8 @@ module.exports = { "default": require("core-js/library/fn/object/assign"), __esM
 },{"core-js/library/fn/object/assign":6}],3:[function(require,module,exports){
 module.exports = { "default": require("core-js/library/fn/promise"), __esModule: true };
 },{"core-js/library/fn/promise":7}],4:[function(require,module,exports){
-module.exports = { "default": require("core-js/library/fn/weak-map"), __esModule: true };
-},{"core-js/library/fn/weak-map":8}],5:[function(require,module,exports){
+module.exports = { "default": require("core-js/library/fn/weak-set"), __esModule: true };
+},{"core-js/library/fn/weak-set":8}],5:[function(require,module,exports){
 require('../../modules/es6.string.iterator');
 require('../../modules/es6.array.from');
 module.exports = require('../../modules/_core').Array.from;
@@ -22,9 +22,9 @@ module.exports = require('../modules/_core').Promise;
 },{"../modules/_core":21,"../modules/es6.object.to-string":81,"../modules/es6.promise":82,"../modules/es6.string.iterator":83,"../modules/web.dom.iterable":85}],8:[function(require,module,exports){
 require('../modules/es6.object.to-string');
 require('../modules/web.dom.iterable');
-require('../modules/es6.weak-map');
-module.exports = require('../modules/_core').WeakMap;
-},{"../modules/_core":21,"../modules/es6.object.to-string":81,"../modules/es6.weak-map":84,"../modules/web.dom.iterable":85}],9:[function(require,module,exports){
+require('../modules/es6.weak-set');
+module.exports = require('../modules/_core').WeakSet;
+},{"../modules/_core":21,"../modules/es6.object.to-string":81,"../modules/es6.weak-set":84,"../modules/web.dom.iterable":85}],9:[function(require,module,exports){
 module.exports = function(it){
   if(typeof it != 'function')throw TypeError(it + ' is not a function!');
   return it;
@@ -1565,62 +1565,18 @@ require('./_iter-define')(String, 'String', function(iterated){
 });
 },{"./_iter-define":43,"./_string-at":67}],84:[function(require,module,exports){
 'use strict';
-var each         = require('./_array-methods')(0)
-  , redefine     = require('./_redefine')
-  , meta         = require('./_meta')
-  , assign       = require('./_object-assign')
-  , weak         = require('./_collection-weak')
-  , isObject     = require('./_is-object')
-  , getWeak      = meta.getWeak
-  , isExtensible = Object.isExtensible
-  , uncaughtFrozenStore = weak.ufstore
-  , tmp          = {}
-  , InternalMap;
+var weak = require('./_collection-weak');
 
-var wrapper = function(get){
-  return function WeakMap(){
-    return get(this, arguments.length > 0 ? arguments[0] : undefined);
-  };
-};
-
-var methods = {
-  // 23.3.3.3 WeakMap.prototype.get(key)
-  get: function get(key){
-    if(isObject(key)){
-      var data = getWeak(key);
-      if(data === true)return uncaughtFrozenStore(this).get(key);
-      return data ? data[this._i] : undefined;
-    }
-  },
-  // 23.3.3.5 WeakMap.prototype.set(key, value)
-  set: function set(key, value){
-    return weak.def(this, key, value);
+// 23.4 WeakSet Objects
+require('./_collection')('WeakSet', function(get){
+  return function WeakSet(){ return get(this, arguments.length > 0 ? arguments[0] : undefined); };
+}, {
+  // 23.4.3.1 WeakSet.prototype.add(value)
+  add: function add(value){
+    return weak.def(this, value, true);
   }
-};
-
-// 23.3 WeakMap Objects
-var $WeakMap = module.exports = require('./_collection')('WeakMap', wrapper, methods, weak, true, true);
-
-// IE11 WeakMap frozen keys fix
-if(new $WeakMap().set((Object.freeze || Object)(tmp), 7).get(tmp) != 7){
-  InternalMap = weak.getConstructor(wrapper);
-  assign(InternalMap.prototype, methods);
-  meta.NEED = true;
-  each(['delete', 'has', 'get', 'set'], function(key){
-    var proto  = $WeakMap.prototype
-      , method = proto[key];
-    redefine(proto, key, function(a, b){
-      // store frozen objects on internal weakmap shim
-      if(isObject(a) && !isExtensible(a)){
-        if(!this._f)this._f = new InternalMap;
-        var result = this._f[key](a, b);
-        return key == 'set' ? this : result;
-      // store all the rest on native weakmap
-      } return method.call(this, a, b);
-    });
-  });
-}
-},{"./_array-methods":14,"./_collection":20,"./_collection-weak":19,"./_is-object":40,"./_meta":48,"./_object-assign":50,"./_redefine":61}],85:[function(require,module,exports){
+}, weak, false, true);
+},{"./_collection":20,"./_collection-weak":19}],85:[function(require,module,exports){
 require('./es6.array.iterator');
 var global        = require('./_global')
   , hide          = require('./_hide')
@@ -1649,13 +1605,13 @@ var _from = require('babel-runtime/core-js/array/from');
 
 var _from2 = _interopRequireDefault(_from);
 
-var _weakMap = require('babel-runtime/core-js/weak-map');
+var _weakSet = require('babel-runtime/core-js/weak-set');
 
-var _weakMap2 = _interopRequireDefault(_weakMap);
+var _weakSet2 = _interopRequireDefault(_weakSet);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var animationStates = new _weakMap2.default();
+var animatingElements = new _weakSet2.default();
 
 function range(start, end) {
   return (0, _from2.default)({ length: end - start + 1 }, function (_, i) {
@@ -1682,10 +1638,10 @@ function getRandomChar(type) {
 
 function shuffleLetters(el, options) {
   return new _promise2.default(function (resolve) {
-    if (animationStates.has(el)) {
+    if (animatingElements.has(el)) {
       return;
     }
-    animationStates.set(el);
+    animatingElements.add(el);
 
     var strArray = (0, _from2.default)(options.text || el.textContent);
     var msPerFrame = 1000 / options.fps;
@@ -1712,7 +1668,7 @@ function shuffleLetters(el, options) {
       var shuffledArray = [].concat(strArray);
 
       if (start > len) {
-        animationStates.delete(el);
+        animatingElements.delete(el);
         return resolve();
       }
 
@@ -1744,6 +1700,6 @@ module.exports = function (el, options) {
   }));
 };
 
-},{"babel-runtime/core-js/array/from":1,"babel-runtime/core-js/object/assign":2,"babel-runtime/core-js/promise":3,"babel-runtime/core-js/weak-map":4}]},{},[86])(86)
+},{"babel-runtime/core-js/array/from":1,"babel-runtime/core-js/object/assign":2,"babel-runtime/core-js/promise":3,"babel-runtime/core-js/weak-set":4}]},{},[86])(86)
 });
 //# sourceMappingURL=shuffle-letters.js.map

@@ -1,6 +1,6 @@
 'use strict';
 
-const animationStates = new WeakMap();
+const animatingElements = new WeakSet();
 
 function range(start, end) {
   return Array.from({length: end - start + 1}, (_, i) => i + start);
@@ -25,10 +25,10 @@ function getRandomChar(type) {
 
 function shuffleLetters(el, options) {
   return new Promise((resolve) => {
-    if (animationStates.has(el)) {
+    if (animatingElements.has(el)) {
       return;
     }
-    animationStates.set(el);
+    animatingElements.add(el);
 
     const strArray = Array.from(options.text || el.textContent);
     const msPerFrame = 1000 / options.fps;
@@ -55,7 +55,7 @@ function shuffleLetters(el, options) {
       const shuffledArray = [].concat(strArray);
 
       if (start > len) {
-        animationStates.delete(el);
+        animatingElements.delete(el);
         return resolve();
       }
 
